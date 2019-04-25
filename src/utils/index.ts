@@ -1,4 +1,4 @@
-import { ICoordinates } from '../Point'
+import { ICoordinates } from '../core/Point'
 
 export function getPositionByIndex(index: number): ICoordinates {
   const RADIUS = 1;

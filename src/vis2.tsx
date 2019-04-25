@@ -1,29 +1,25 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { GraphRenderer } from './GraphRenderer'
+import { connect, Provider } from 'react-redux'
+import { GraphRenderer } from './components/GraphRenderer'
 import { defaultModel, Model } from '@alephdata/followthemoney'
-import { Vertex } from './Vertex'
-import { Graph } from './Graph'
+import { Vertex } from './core/Vertex'
+import { Graph } from './core/Graph'
 import { data } from '../resources/az_alievs.js'
+import store from './store'
+import { addVertexAction } from './actions/vertexAction'
 
 const model = new Model(defaultModel)
-const ggraph = new Graph()
 
-function useGraph() {
-  const [graph, setGraph] = React.useState(ggraph)
-  return [graph, setGraph, function() {
-    graph.addVertex(new Vertex('12', '12', '12' + Math.random()))
-  }]
-}
 
-function Vis2() {
-  const [graph, addVertex] = useGraph()
+
+function Vis2(props:any) {
   const [count, setCount] = React.useState(1)
   return <div>
     <div>
       <button onClick={() => Array.from({ length: count })
       // @ts-ignore
-        .forEach(addVertex)}>
+        .forEach(props.addVertexAction(new Vertex(12,12,12+Math.random())))}>
         add vertex
       </button>
       <input type="text" value={count} onChange={({ target }) => {
@@ -40,13 +36,19 @@ function Vis2() {
       </button>
     </div>
     <div>
-      <GraphRenderer graph={graph as Graph}/>
+      <GraphRenderer />
     </div>
   </div>
 }
 
+const ConnectedVis2 = connect(null, {
+  addVertexAction
+})(Vis2)
+
 ReactDOM.render(
-  <Vis2/>,
+  <Provider store={store}>
+    <ConnectedVis2/>
+  </Provider>,
   document.querySelector('#app')
 )
 

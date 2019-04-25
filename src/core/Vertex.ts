@@ -1,6 +1,6 @@
 import { Point } from './Point'
 import { Graph } from './Graph'
-import { getPositionByIndex } from './utils'
+import { getPositionByIndex } from '../utils'
 
 export class Vertex {
   public point = new Point();

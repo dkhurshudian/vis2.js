@@ -1,5 +1,5 @@
 import React from 'react'
-import { Vertex } from './Vertex'
+import { Vertex } from '../core/Vertex'
 
 interface IVertexRendererProps {
   vertex: Vertex,

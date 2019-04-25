@@ -1,17 +1,20 @@
 import React, { MouseEvent } from 'react'
-import { ICoordinates, Point } from './Point'
+import { ICoordinates, Point } from '../core/Point'
 import { IViewport } from './Viewport'
+import { connect } from 'react-redux'
+import { selectPanCenter, selectViewport, selectZoomFactor } from '../selectors'
+import { setPanCenter, setZoomFactor } from '../actions/viewportAction'
 
 interface IPanProps extends IViewport {
-  onZoomChanged: (zoomFactor: number, panCenter?:Point) => any,
-  onPanChanged: (panCenter: Point) => any,
+  setZoomFactor: (zoomFactor: number, panCenter?: ICoordinates) => any,
+  setPanCenter: (panCenter: ICoordinates) => any,
 }
 
 interface IPanState {
   moving: boolean,
 }
 
-export class Pan extends React.Component<IPanProps, IPanState> {
+export class InternalPan extends React.Component<IPanProps, IPanState> {
   state: IPanState = { moving: false }
 
   constructor(props: Readonly<IPanProps>) {
@@ -30,13 +33,17 @@ export class Pan extends React.Component<IPanProps, IPanState> {
       * (((e.movementX / bBox.width) * 100) / 100) * (this.props.zoomFactor * this.props.RATIO)
       * (((e.movementY / bBox.height) * 100) / 100) * ((this.props.zoomFactor) / this.props.RATIO),
       * */
-      this.props.onPanChanged(
-        this.getPixelInUnits(
-          Point.from(e.movementX, e.movementY),
-          e.currentTarget.getBoundingClientRect()
-        )
-          .addition(this.props.panCenter)
+      const point = this.getPixelInUnits(
+        Point.from(e.movementX, e.movementY),
+        e.currentTarget.getBoundingClientRect()
       )
+        .addition(this.props.panCenter)
+
+
+      this.props.setPanCenter({
+        x: point.x,
+        y: point.y
+      })
     }
   }
 
@@ -52,34 +59,34 @@ export class Pan extends React.Component<IPanProps, IPanState> {
     // TODO: according to docs `event.deltaY` is not stable, but it works fine so i've tested so far, consider using scroll events if anybody will experience improper behaviour
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
     // @ts-ignore
-    const zoomChange = event.deltaY < 0 ? -1 : 1;
+    const zoomChange = event.deltaY < 0 ? -1 : 1
     let zoomFactor = this.props.zoomFactor + zoomChange
     if (zoomFactor !== 0 && (zoomFactor !== this.props.zoomFactor)) {
-      const clientRect = event.currentTarget.getBoundingClientRect();
+      const clientRect = event.currentTarget.getBoundingClientRect()
       // the position of mouse inside the container in pixels
       const internalPosition = Point.from(
         event.clientX - clientRect.left,
         event.clientY - clientRect.top
       )
-      const widthInUnits = this.props.zoomFactor * this.props.RATIO;
-      const heightInUnits = this.props.zoomFactor / this.props.RATIO;
+      const widthInUnits = this.props.zoomFactor * this.props.RATIO
+      const heightInUnits = this.props.zoomFactor / this.props.RATIO
       const mousePosition = this.getPixelInUnits(internalPosition, clientRect)
         .subtract(Point.from(
           (widthInUnits / 2),
           (heightInUnits / 2)
-        ));
+        ))
 
       // mouse position in the next zoom scale
       const nextMousePosition = mousePosition
-        .divide(Point.from(this.props.zoomFactor/zoomFactor))
+        .divide(Point.from(this.props.zoomFactor / zoomFactor))
 
       const nextPan = this.props.panCenter.subtract(
         mousePosition.subtract(nextMousePosition)
       )
-      this.props.onZoomChanged(
+      this.props.setZoomFactor(
         zoomFactor,
-        nextPan,
-      );
+        nextPan
+      )
     }
   }
 
@@ -102,3 +109,10 @@ export class Pan extends React.Component<IPanProps, IPanState> {
     >{this.props.children}</div>)
   }
 }
+
+export const Pan = connect((state) => ({
+  zoomFactor: selectZoomFactor(state),
+  panCenter: selectPanCenter(state)
+}), ({
+  setZoomFactor, setPanCenter
+}))(InternalPan)

@@ -1,5 +1,7 @@
 import React from 'react'
-import { Point } from './Point'
+import { Point } from '../core/Point'
+import { connect } from 'react-redux'
+import { selectPanCenter, selectZoomFactor } from '../selectors'
 
 export interface IViewport {
   zoomFactor: number
@@ -10,7 +12,7 @@ export interface IViewport {
 
 interface IViewportProps extends IViewport {}
 
-export class Viewport extends React.PureComponent <IViewportProps> {
+export class ViewportInternal extends React.PureComponent <IViewportProps> {
   state = { zoomFactor: 0, panCenter: new Point() }
 
   render() {
@@ -33,3 +35,10 @@ export class Viewport extends React.PureComponent <IViewportProps> {
       </svg>)
   }
 }
+
+export const Viewport = connect((state)=>{
+  return ({
+    zoomFactor: selectZoomFactor(state),
+    panCenter: selectPanCenter(state)
+  })
+})(ViewportInternal)

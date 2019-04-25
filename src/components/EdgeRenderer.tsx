@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edge } from './Edge'
+import { Edge } from '../core/Edge'
 
 interface IEdgeRendererProps {
   edge: Edge,
