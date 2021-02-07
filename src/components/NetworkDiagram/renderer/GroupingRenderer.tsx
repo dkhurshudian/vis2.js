@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { DraggableCore, DraggableEvent, DraggableData } from 'react-draggable';
-import { GraphContext } from 'NetworkDiagram/GraphContext';
-import { GraphElement, Grouping, Point, Vertex } from 'NetworkDiagram/layout'
+import {GraphElement, GraphLayout, Grouping, Point, Vertex} from 'NetworkDiagram/layout'
 import { getRefMatrix, applyMatrix } from 'NetworkDiagram/renderer/utils';
 import { modes } from 'NetworkDiagram/utils'
 
@@ -11,7 +10,14 @@ interface IGroupingRendererProps {
   selectGrouping: (element: Array<GraphElement>, options?: any) => any
   dragSelection: (offset: Point) => any
   dropSelection: () => any
-  actions: any
+  actions: any,
+  layoutConfig:GraphLayout['config'];
+  interactionMode:string;
+  writeable:boolean;
+  notSelected:boolean;
+  isGroupingSelected:GraphLayout['isGroupingSelected'];
+  isGroupingMemberSelected:GraphLayout['isGroupingMemberSelected'];
+
 }
 
 interface IGroupingRendererState {
@@ -19,7 +25,6 @@ interface IGroupingRendererState {
 }
 
 export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps, IGroupingRendererState> {
-  static contextType = GraphContext;
   gRef: React.RefObject<SVGGElement>
 
   constructor(props: Readonly<IGroupingRendererProps>) {
@@ -36,12 +41,11 @@ export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps
   }
 
   private onDragMove(e: DraggableEvent, data: DraggableData) {
-    const { layout } = this.context;
-    const { actions } = this.props
+    const { actions, layoutConfig } = this.props
     const matrix = getRefMatrix(this.gRef)
     const current = applyMatrix(matrix, data.x, data.y)
     const last = applyMatrix(matrix, data.lastX, data.lastY)
-    const offset = layout.config.pixelToGrid(current.subtract(last))
+    const offset = layoutConfig.pixelToGrid(current.subtract(last))
     actions.setInteractionMode(modes.ITEM_DRAG)
     if (offset.x || offset.y) {
       this.props.dragSelection(offset)
@@ -49,8 +53,7 @@ export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps
   }
 
   onDragEnd() {
-    const { interactionMode } = this.context;
-    const { actions, dropSelection } = this.props;
+    const { actions, dropSelection, interactionMode } = this.props;
     dropSelection()
     if (interactionMode === modes.ITEM_DRAG) {
       actions.setInteractionMode(modes.SELECT)
@@ -70,7 +73,7 @@ export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps
   }
 
   onMouseOver() {
-    this.context.interactionMode === modes.ITEM_DRAG && this.setState({hovered: true})
+    this.props.interactionMode === modes.ITEM_DRAG && this.setState({hovered: true})
   }
 
   onMouseOut() {
@@ -78,15 +81,18 @@ export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps
   }
 
   render() {
-    const { interactionMode, layout, writeable } = this.context;
-    const { grouping, vertices } = this.props
+    const {
+      grouping, vertices, interactionMode, notSelected,
+      isGroupingMemberSelected, isGroupingSelected, writeable,
+      layoutConfig
+    } = this.props
     const { hovered } = this.state;
 
     if (!vertices || vertices.length <= 1) { return null; }
 
     const {x, y, width, height} = grouping.getBoundingRect();
-    const isSelected = layout.isGroupingSelected(grouping);
-    const isHighlighted = isSelected || layout.isGroupingMemberSelected(grouping) || layout.selection.length === 0;
+    const isSelected = isGroupingSelected(grouping);
+    const isHighlighted = isSelected || isGroupingMemberSelected(grouping) || notSelected;
 
     const groupStyle: React.CSSProperties = {
       cursor: isSelected && writeable ? 'grab' : 'pointer',
@@ -97,12 +103,12 @@ export class GroupingRenderer extends React.PureComponent<IGroupingRendererProps
       fontWeight: "bold"
     }
     const selectedAreaStyle: React.CSSProperties = {
-      stroke: layout.config.UNSELECTED_COLOR,
+      stroke: layoutConfig.UNSELECTED_COLOR,
       strokeWidth: "0.5px",
       strokeDasharray: "2",
       pointerEvents: interactionMode === modes.ITEM_DRAG ? "none" : "auto"
     }
-    const displayColor = grouping && (isHighlighted || hovered) ? grouping.color : layout.config.UNSELECTED_COLOR
+    const displayColor = grouping && (isHighlighted || hovered) ? grouping.color : layoutConfig.UNSELECTED_COLOR
 
     return (
       <DraggableCore

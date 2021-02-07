@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Vertex, Point, Rectangle, Edge, GraphElement, Grouping } from 'NetworkDiagram/layout';
-import { GraphContext } from 'NetworkDiagram/GraphContext'
+import {GraphContext, IGraphContext} from 'NetworkDiagram/GraphContext'
 import { Canvas } from './Canvas'
 import { EdgeRenderer } from './EdgeRenderer'
 import { EdgeDrawer } from './EdgeDrawer'
 import { VertexRenderer } from './VertexRenderer'
 import { GroupingRenderer } from './GroupingRenderer'
 import { modes } from 'components/NetworkDiagram/utils'
+import {Context} from "react";
 
 
 interface IGraphRendererProps {
@@ -14,10 +15,9 @@ interface IGraphRendererProps {
   animateTransition: boolean,
   actions: any,
 }
-
 export class GraphRenderer extends React.Component<IGraphRendererProps> {
   static contextType = GraphContext;
-
+  context!: IGraphContext;
   constructor(props: any) {
     super(props)
     this.selectElement = this.selectElement.bind(this);
@@ -73,6 +73,12 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
           dragSelection={this.dragSelection}
           dropSelection={this.dropSelection}
           actions={actions}
+          layoutConfig={layout.config}
+          writeable={this.context.writeable}
+          interactionMode={this.context.interactionMode}
+          isGroupingMemberSelected={layout.isGroupingMemberSelected}
+          isGroupingSelected={layout.isGroupingSelected}
+          notSelected={layout.selection.length===0}
         />
       )
     })
