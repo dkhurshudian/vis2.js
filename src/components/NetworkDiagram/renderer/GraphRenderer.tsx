@@ -94,7 +94,10 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
           selectEdge={this.selectElement}
           dragSelection={this.dragSelection}
           dropSelection={this.dropSelection}
-        />
+          layoutConfig={layout.config}
+          isEdgeHighlighted={layout.isEdgeHighlighted}
+          notSelected={layout.selection.length===0}
+      />
     })
   }
 
@@ -117,7 +120,7 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
         isElementSelected={this.context.layout.isElementSelected}
         entityManager={this.context.entityManager}
         interactionMode={this.context.interactionMode}
-        notSelected={this.context.layout.selection.length===0}
+        notSelected={layout.selection.length===0}
       />
     )
   }

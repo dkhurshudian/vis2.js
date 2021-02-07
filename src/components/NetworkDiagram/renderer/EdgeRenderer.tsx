@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Bezier from 'bezier-js'
-import { GraphContext } from 'NetworkDiagram/GraphContext';
-import { Edge, Vertex, Point } from 'NetworkDiagram/layout'
+import {Edge, Vertex, Point, GraphLayout} from 'NetworkDiagram/layout'
 import { EdgeLabelRenderer } from './EdgeLabelRenderer';
 
 
@@ -12,11 +11,13 @@ interface IEdgeRendererProps {
   svgRef: React.RefObject<SVGSVGElement>,
   selectEdge: (edge: Edge, options?: any) => any,
   dragSelection: (offset: Point, initialPosition?: Point) => any,
-  dropSelection: () => any
+  dropSelection: () => any,
+  layoutConfig:GraphLayout['config'];
+  isEdgeHighlighted:GraphLayout['isEdgeHighlighted'];
+  notSelected:boolean;
 }
 
 export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
-  static contextType = GraphContext;
 
   constructor(props: Readonly<IEdgeRendererProps>) {
     super(props)
@@ -31,11 +32,10 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
   }
 
   generatePath(vertex1: any, vertex2: any) {
-    const { layout } = this.context;
-    const { edge } = this.props
+    const { edge, layoutConfig } = this.props
 
     if (edge.labelPosition) {
-      const curveGenerator = Bezier.quadraticFromPoints(vertex1, layout.config.gridToPixel(edge.labelPosition), vertex2, .5);
+      const curveGenerator = Bezier.quadraticFromPoints(vertex1, layoutConfig.gridToPixel(edge.labelPosition), vertex2, .5);
       // location of control point:
       const { x, y } = curveGenerator.points[1]
 
@@ -50,24 +50,26 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
 
       return {
         path: "M" + vertex1.x + " " + vertex1.y + " L " + vertex2.x + " " + vertex2.y,
-        center: layout.config.pixelToGrid(new Point(mpx, mpy))
+        center: layoutConfig.pixelToGrid(new Point(mpx, mpy))
       }
     }
   }
 
 
   render() {
-    const { layout } = this.context;
-    const { edge, vertex1, vertex2, dragSelection, dropSelection, svgRef } = this.props;
+    const {
+      edge, vertex1, vertex2, dragSelection,
+      dropSelection, svgRef, layoutConfig,
+      isEdgeHighlighted, notSelected } = this.props;
     if (!vertex1 || !vertex2 || vertex1.hidden || vertex2.hidden) {
       return null;
     }
-    const isHighlighted = layout.isEdgeHighlighted(edge) || layout.selection.length === 0;
+    const isHighlighted = isEdgeHighlighted(edge) || notSelected;
     const isEntity = edge.isEntity()
     const isDirected = edge.directed
 
-    const vertex1Position = layout.config.gridToPixel(vertex1.position)
-    const vertex2Position = layout.config.gridToPixel(vertex2.position)
+    const vertex1Position = layoutConfig.gridToPixel(vertex1.position)
+    const vertex2Position = layoutConfig.gridToPixel(vertex2.position)
     const { path, center } = this.generatePath(vertex1Position, vertex2Position)
 
     const clickableLineStyles: React.CSSProperties = {
@@ -88,7 +90,7 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
           style={clickableLineStyles}
         />
         <path
-          stroke={isHighlighted ? layout.config.EDGE_COLOR : layout.config.UNSELECTED_COLOR}
+          stroke={isHighlighted ? layoutConfig.EDGE_COLOR : layoutConfig.UNSELECTED_COLOR}
           strokeWidth='1'
           fill='none'
           d={path}
@@ -105,8 +107,8 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
           onClick={this.onClick}
           dragSelection={dragSelection}
           dropSelection={dropSelection}
-          outlineColor={layout.config.EDGE_COLOR}
-          textColor={layout.config.EDGE_COLOR}
+          outlineColor={layoutConfig.EDGE_COLOR}
+          textColor={layoutConfig.EDGE_COLOR}
         />
       )}
     </React.Fragment>
