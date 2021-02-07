@@ -61,11 +61,25 @@ interface INetworkDiagramState {
   vertexCreateOptions?: any
   vertexMenuSettings: any,
 }
-
 class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkDiagramState> {
   state: INetworkDiagramState;
   history: History;
   svgRef: React.RefObject<SVGSVGElement>
+  private readonly actions: Pick<this,
+    |'addVertex'
+    |'exportSvg'
+    |'navigateHistory'
+    |'removeSelection'
+    |'setInteractionMode'
+    |'toggleTableView'
+    |'ungroupSelection'
+    |'onChangeSearch'
+    |'onSubmitSearch'
+    |'showVertexMenu'
+    |'expandVertex'
+    |'fitToSelection'
+    |'toggleSettingsDialog'
+    >
 
   constructor(props: INetworkDiagramProps) {
     super(props)
@@ -106,6 +120,22 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
     this.expandVertex = this.expandVertex.bind(this);
     this.onVertexCreate = this.onVertexCreate.bind(this);
     this.onEdgeCreate = this.onEdgeCreate.bind(this);
+
+    this.actions = {
+      addVertex: this.addVertex,
+      exportSvg: this.exportSvg,
+      navigateHistory: this.navigateHistory,
+      removeSelection: this.removeSelection,
+      setInteractionMode: this.setInteractionMode,
+      toggleTableView: this.toggleTableView,
+      ungroupSelection: this.ungroupSelection,
+      onChangeSearch: this.onChangeSearch,
+      onSubmitSearch: this.onSubmitSearch,
+      showVertexMenu: this.showVertexMenu,
+      expandVertex: this.expandVertex,
+      fitToSelection: this.fitToSelection,
+      toggleSettingsDialog: this.toggleSettingsDialog,
+    };
   }
 
   componentDidMount() {
@@ -390,21 +420,7 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
       interactionMode
     };
 
-    const actions = {
-      addVertex: this.addVertex,
-      exportSvg: this.exportSvg,
-      navigateHistory: this.navigateHistory,
-      removeSelection: this.removeSelection,
-      setInteractionMode: this.setInteractionMode,
-      toggleTableView: this.toggleTableView,
-      ungroupSelection: this.ungroupSelection,
-      onChangeSearch: this.onChangeSearch,
-      onSubmitSearch: this.onSubmitSearch,
-      showVertexMenu: this.showVertexMenu,
-      expandVertex: this.expandVertex,
-      fitToSelection: this.fitToSelection,
-      toggleSettingsDialog: this.toggleSettingsDialog,
-    };
+
 
     const showSidebar = layout.vertices && layout.vertices.size > 0 && !tableView;
 
@@ -413,7 +429,7 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
         <div className={c('NetworkDiagram', `toolbar-${config.toolbarPosition}`, `theme-${config.editorTheme}`)}>
           <div className="NetworkDiagram__toolbar">
             <Toolbar
-              actions={actions}
+              actions={this.actions}
               history={this.history}
               showEditingButtons={writeable}
               searchText={searchText}
@@ -434,7 +450,7 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
               <GraphRenderer
                 svgRef={this.svgRef}
                 animateTransition={animateTransition}
-                actions={actions}
+                actions={this.actions}
               />
             </div>
             {showSidebar && (
@@ -478,7 +494,7 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
             <VertexMenu
               isOpen={vertexMenuSettings !== null && interactionMode !== modes.EDGE_DRAW}
               contents={vertexMenuSettings}
-              actions={actions}
+              actions={this.actions}
               hideMenu={this.hideVertexMenu}
             />
             <SettingsDialog

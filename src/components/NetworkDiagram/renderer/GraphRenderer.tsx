@@ -101,7 +101,8 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
   renderVertices() {
     const { layout } = this.context;
     const { actions } = this.props;
-    const vertices = layout.getVertices().filter((vertex: Vertex) => !vertex.isHidden())
+    const vertices = layout.getVertices().filter(function vertexFilter(vertex: Vertex) {return  !vertex.isHidden()})
+
 
     return vertices.map((vertex: Vertex) =>
       <VertexRenderer
@@ -111,6 +112,12 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
         dragSelection={this.dragSelection}
         dropSelection={this.dropSelection}
         actions={actions}
+        writeable={this.context.writeable}
+        layoutConfig={this.context.layout.config}
+        isElementSelected={this.context.layout.isElementSelected}
+        entityManager={this.context.entityManager}
+        interactionMode={this.context.interactionMode}
+        notSelected={this.context.layout.selection.length===0}
       />
     )
   }
@@ -127,7 +134,6 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
   render(){
     const { interactionMode, viewport } = this.context;
     const { svgRef, animateTransition, actions } = this.props;
-
     return (
       <Canvas
         svgRef={svgRef}

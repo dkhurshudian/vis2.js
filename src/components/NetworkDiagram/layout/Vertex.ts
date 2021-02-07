@@ -54,7 +54,8 @@ export class Vertex {
     return this.hidden || this.type !== PropertyType.ENTITY && this.getDegree() <= 1
   }
 
-  isEntity(): boolean {
+  isEntity(): this is this & Required<Pick<this, 'entityId'>> {
+
     return !!(this.entityId)
   }
 
