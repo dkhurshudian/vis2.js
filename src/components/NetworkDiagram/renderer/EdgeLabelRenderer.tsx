@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { DraggableCore, DraggableEvent, DraggableData } from 'react-draggable';
-import { GraphContext } from 'NetworkDiagram/GraphContext';
 import { Point } from 'NetworkDiagram/layout/Point'
 import { getRefMatrix, applyMatrix } from 'NetworkDiagram/renderer/utils';
 
 import './EdgeLabelRenderer.scss'
+import {GraphLayout} from "NetworkDiagram";
 
 interface IEdgeLabelRendererProps {
   labelText: string,
@@ -15,14 +15,16 @@ interface IEdgeLabelRendererProps {
   outlineColor?: string,
   textColor?: string,
   svgRef: React.RefObject<SVGSVGElement>,
+  isVisualLabelRedundant?:boolean;
+  writeable:boolean;
+  layoutConfig:GraphLayout['config'];
 }
 
 interface IEdgeLabelRendererState {
-  textExtents: any
+  textExtents: null | [number, number]
 }
 
 export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererProps, IEdgeLabelRendererState> {
-  static contextType = GraphContext;
   gRef: React.RefObject<SVGGElement>
   text: any
   dragInitial: Point
@@ -38,18 +40,22 @@ export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererPro
   }
 
   componentDidMount() {
-    const { writeable } = this.context;
+    const { writeable } = this.props;
     const g = this.gRef.current;
     if (writeable && g !== null) {
       g.addEventListener('dblclick', this.onDoubleClick)
     }
 
-    const box = this.text.getBBox();
-    this.setState({textExtents:[box.width,box.height]});
+    if(!this.props.isVisualLabelRedundant){
+      const box = this.text.getBBox();
+      this.setState({textExtents:[box.width,box.height]});
+    }
+
   }
 
+
   componentDidUpdate(prevProps: IEdgeLabelRendererProps) {
-    if (prevProps.labelText !== this.props.labelText) {
+    if (prevProps.labelText !== this.props.labelText && (!this.props.isVisualLabelRedundant)) {
       const box = this.text.getBBox();
 
       this.setState({textExtents:[box.width,box.height]});
@@ -57,23 +63,23 @@ export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererPro
   }
 
   componentWillUnmount() {
-    const { writeable } = this.context;
+    const { writeable } = this.props;
     const g = this.gRef.current;
     if (writeable && g !== null) {
-      g.removeEventListener('dblclick', this.onDoubleClick)
+      // g.removeEventListener('dblclick', this.onDoubleClick)
     }
   }
 
   private onDragMove(e: DraggableEvent, data: DraggableData) {
-    const { config } = this.context.layout;
+    const  {layoutConfig}  = this.props;
 
     const matrix = getRefMatrix(this.gRef)
     const current = applyMatrix(matrix, data.x, data.y)
     const last = applyMatrix(matrix, data.lastX, data.lastY)
-    const offset = config.pixelToGrid(current.subtract(last))
+    const offset = layoutConfig.pixelToGrid(current.subtract(last))
 
     if (offset.x || offset.y) {
-      this.props.dragSelection(offset, config.pixelToGrid(this.dragInitial))
+      this.props.dragSelection(offset, layoutConfig.pixelToGrid(this.dragInitial))
     }
   }
 
@@ -90,23 +96,24 @@ export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererPro
     onClick(e)
   }
 
-  onDoubleClick(e: any) {
+  onDoubleClick(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
 
   render() {
-    const { layout, writeable } = this.context;
+    const { layoutConfig, writeable } = this.props;
     const { labelText, center, onClick, outlineColor, textColor } = this.props;
     const margin = 1.5;
     const extents = this.state.textExtents;
-    const { x, y } = layout.config.gridToPixel(center);
+    const { x, y } = layoutConfig.gridToPixel(center);
     const translate = `translate(${x} ${y})`
     const style = {
       fontSize: "5px",
       fontFamily: "sans-serif",
     } as React.CSSProperties
 
+    // NOTE: Consider using https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject
     const outline = extents ?
            <rect className="EdgeLabel__outline"
               x={-extents[0]/2-margin}
@@ -121,7 +128,7 @@ export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererPro
          : null;
 
     return (
-      <DraggableCore
+       <DraggableCore
         handle='.edge-handle'
         onStart={writeable ? this.onDragStart : undefined}
         onDrag={writeable ? this.onDragMove : undefined}
@@ -133,18 +140,29 @@ export class EdgeLabelRenderer extends React.PureComponent<IEdgeLabelRendererPro
           ref={this.gRef}
           className="EdgeLabel" >
             <g className="edge-handle">
-              {outline}
-              <text
-                ref={(t) => { this.text = t; }}
-                textAnchor="middle"
-                dy={extents?(extents[1]/4):0}
-                className="EdgeLabel__text"
+              { this.props.isVisualLabelRedundant
+                ? <rect
+                x={labelText.length*3/-2}
+                y={extents?(extents[1]/4):0}
                 fill={textColor}
-                style={style}
-                pointerEvents="none"
-              >
-                {labelText}
-              </text>
+                fillOpacity="0.4"
+                height='5px'
+                width={`${labelText.length*3}px`}
+              />
+              : <>
+                  {outline}
+                  <text
+                    ref={(t) => { this.text = t; }}
+                    textAnchor="middle"
+                    dy={extents?(extents[1]/4):0}
+                    className="EdgeLabel__text"
+                    fill={textColor}
+                    style={style}
+                    pointerEvents="none"
+                  >
+                    {labelText}
+                  </text>
+                </>}
             </g>
         </g>
       </DraggableCore>

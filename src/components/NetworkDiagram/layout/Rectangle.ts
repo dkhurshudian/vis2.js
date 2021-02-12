@@ -38,7 +38,11 @@ export class Rectangle {
   }
 
   toString(): string {
-    return `Rectangle(${this.x} ${this.y} ${this.width} ${this.height})`
+    return `Rectangle(${this.toArray().join(' ')})`
+  }
+
+  toArray(){
+    return [this.x, this.y, this.width, this.height] as const;
   }
 
   static fromPoints(...points: Point[]): Rectangle {

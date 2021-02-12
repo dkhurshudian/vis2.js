@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { DraggableCore, DraggableEvent, DraggableData } from 'react-draggable';
-import { GraphContext } from 'NetworkDiagram/GraphContext';
 import { Point } from 'NetworkDiagram/layout/Point'
 import { Vertex } from 'NetworkDiagram/layout/Vertex'
 import { getRefMatrix, applyMatrix } from 'NetworkDiagram/renderer/utils';
@@ -22,7 +21,8 @@ interface IVertexRendererProps {
   layoutConfig:GraphLayout['config'];
   entityManager:EntityManager;
   interactionMode:string;
-  notSelected:boolean;
+  noneSelected:boolean;
+  isVisualLabelRedundant?:boolean;
 }
 
 interface IVertexRendererState {
@@ -133,10 +133,10 @@ export class VertexRenderer extends React.PureComponent<IVertexRendererProps, IV
   }
 
   getColor() {
-    const { vertex, isElementSelected, notSelected, layoutConfig } = this.props
+    const { vertex, isElementSelected, noneSelected, layoutConfig } = this.props
     const { hovered } = this.state;
 
-    const highlighted = isElementSelected(vertex) || notSelected;
+    const highlighted = isElementSelected(vertex) || noneSelected;
 
     if (highlighted || hovered) {
       return vertex.color || layoutConfig.DEFAULT_VERTEX_COLOR
@@ -190,7 +190,22 @@ export class VertexRenderer extends React.PureComponent<IVertexRendererProps, IV
             stroke={isEntity ? 'none' : vertexColor}
             onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}
             />
-          <VertexLabelRenderer center={labelPosition} label={vertex.label} type={vertex.type} onClick={this.onClick} color={vertexColor}/>
+          {this.props.isVisualLabelRedundant
+            ? <rect
+              x={vertex.label.length*3/-2}
+              y={labelPosition.y}
+              fill={vertexColor}
+              fillOpacity="0.4"
+              height='5px'
+              width={`${vertex.label.length*3}px`}
+            />
+            : <VertexLabelRenderer
+              center={labelPosition}
+              label={vertex.label}
+              type={vertex.type}
+              onClick={this.onClick}
+              color={vertexColor}
+            />}
 
           {/* 'isEntity' constant can't be used here so that the effects of Vertex.isEntity type guard are applied  */}
           {vertex.isEntity() && <IconRenderer entity={entityManager.getEntity(vertex.entityId)} radius={vertexRadius}/>}

@@ -14,7 +14,9 @@ interface IEdgeRendererProps {
   dropSelection: () => any,
   layoutConfig:GraphLayout['config'];
   isEdgeHighlighted:GraphLayout['isEdgeHighlighted'];
-  notSelected:boolean;
+  noneSelected:boolean;
+  isVisualLabelRedundant?:boolean;
+  writeable:boolean;
 }
 
 export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
@@ -60,11 +62,12 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
     const {
       edge, vertex1, vertex2, dragSelection,
       dropSelection, svgRef, layoutConfig,
-      isEdgeHighlighted, notSelected } = this.props;
+      isEdgeHighlighted, noneSelected, isVisualLabelRedundant
+    } = this.props;
     if (!vertex1 || !vertex2 || vertex1.hidden || vertex2.hidden) {
       return null;
     }
-    const isHighlighted = isEdgeHighlighted(edge) || notSelected;
+    const isHighlighted = isEdgeHighlighted(edge) || noneSelected;
     const isEntity = edge.isEntity()
     const isDirected = edge.directed
 
@@ -109,6 +112,9 @@ export class EdgeRenderer extends React.PureComponent<IEdgeRendererProps>{
           dropSelection={dropSelection}
           outlineColor={layoutConfig.EDGE_COLOR}
           textColor={layoutConfig.EDGE_COLOR}
+          isVisualLabelRedundant={isVisualLabelRedundant}
+          writeable={this.props.writeable}
+          layoutConfig={layoutConfig}
         />
       )}
     </React.Fragment>

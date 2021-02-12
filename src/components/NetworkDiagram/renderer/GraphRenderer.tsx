@@ -7,8 +7,14 @@ import { EdgeDrawer } from './EdgeDrawer'
 import { VertexRenderer } from './VertexRenderer'
 import { GroupingRenderer } from './GroupingRenderer'
 import { modes } from 'components/NetworkDiagram/utils'
-import {Context} from "react";
 
+
+
+// Sure this numbers can be more accurate. screen size dpi, etc..
+
+// Very important to have a margin between 2 thresholds. TBD;
+const VISUAL_LABEL_THRESHOLD = 1.5;
+const WINDOWING_THRESHOLD = 1.3;
 
 interface IGraphRendererProps {
   svgRef: React.RefObject<SVGSVGElement>,
@@ -85,32 +91,47 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
   }
 
   renderEdges() {
-    const { layout } = this.context;
+    const { layout, viewport } = this.context;
     const { svgRef } = this.props;
+
+
+    const isVisualLabelRedundant = viewport.zoomLevel > VISUAL_LABEL_THRESHOLD;
+
 
     return layout.getEdges().filter((edge: Edge) => !edge.isHidden()).map((edge: Edge) => {
       const vertex1 = layout.vertices.get(edge.sourceId);
       const vertex2 = layout.vertices.get(edge.targetId);
-      return  <EdgeRenderer
-          key={edge.id}
-          svgRef={svgRef}
-          edge={edge}
-          vertex1={vertex1}
-          vertex2={vertex2}
-          selectEdge={this.selectElement}
-          dragSelection={this.dragSelection}
-          dropSelection={this.dropSelection}
-          layoutConfig={layout.config}
-          isEdgeHighlighted={layout.isEdgeHighlighted}
-          notSelected={layout.selection.length===0}
+      return <EdgeRenderer
+        key={edge.id}
+        svgRef={svgRef}
+        edge={edge}
+        vertex1={vertex1}
+        vertex2={vertex2}
+        selectEdge={this.selectElement}
+        dragSelection={this.dragSelection}
+        dropSelection={this.dropSelection}
+        layoutConfig={layout.config}
+        isEdgeHighlighted={layout.isEdgeHighlighted}
+        noneSelected={layout.selection.length===0}
+        isVisualLabelRedundant={isVisualLabelRedundant}
+        writeable={this.context.writeable}
       />
     })
   }
 
-  renderVertices() {
-    const { layout } = this.context;
+  renderVertices(viewBoxRect:Rectangle) {
+    const { layout, viewport } = this.context;
     const { actions } = this.props;
-    const vertices = layout.getVertices().filter(function vertexFilter(vertex: Vertex) {return  !vertex.isHidden()})
+
+    const isVisualLabelRedundant = viewport.zoomLevel > VISUAL_LABEL_THRESHOLD;
+    const isWorthWindowing = viewport.zoomLevel < WINDOWING_THRESHOLD;
+
+    const vertices = isWorthWindowing
+      ? layout.getVertices().filter((vertex: Vertex) => {
+        return !vertex.isHidden() && viewBoxRect.contains(vertex.position)
+      })
+      : layout.getVertices().filter(function vertexFilter(vertex: Vertex) {return  !vertex.isHidden()})
+
 
 
     return vertices.map((vertex: Vertex) =>
@@ -126,7 +147,8 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
         isElementSelected={this.context.layout.isElementSelected}
         entityManager={this.context.entityManager}
         interactionMode={this.context.interactionMode}
-        notSelected={layout.selection.length===0}
+        noneSelected={layout.selection.length===0}
+        isVisualLabelRedundant={isVisualLabelRedundant}
       />
     )
   }
@@ -143,6 +165,7 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
   render(){
     const { interactionMode, viewport } = this.context;
     const { svgRef, animateTransition, actions } = this.props;
+    const viewBoxRect = viewport.getViewBoxRect();
     return (
       <Canvas
         svgRef={svgRef}
@@ -159,7 +182,7 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
         }
         {this.renderGroupings()}
         {this.renderEdges()}
-        {this.renderVertices()}
+        {this.renderVertices(viewBoxRect)}
       </Canvas>
     );
   }

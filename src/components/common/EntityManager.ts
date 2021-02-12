@@ -79,7 +79,7 @@ export class EntityManager {
 
   getEntities(ids?: Array<string>): Entity[] {
     if (ids) {
-      return ids.map(id => this.getEntity(id)).filter(e => e !== undefined) as Entity[];
+      return ids.map(id => this.getEntity(id)).filter((e): e is Entity => e !== undefined);
     } else {
       return Array.from(this.entities.values());
     }
@@ -98,7 +98,7 @@ export class EntityManager {
   }
 
   addEntities(entities: Array<Entity>) {
-    entities.map(e => this.entities.set(e.id, e));
+    entities.forEach(e => this.entities.set(e.id, e));
   }
 
   updateEntity(entity: Entity) {

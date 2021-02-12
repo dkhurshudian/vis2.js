@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import { Entity } from '@alephdata/followthemoney';
 import { Menu, Icon } from '@blueprintjs/core'
 import { Schema } from 'types';

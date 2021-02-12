@@ -25,6 +25,18 @@ export class Viewport {
     )
   }
 
+  getViewBoxRect(){
+    const widthX = Viewport.BASE_SIZE * this.zoomLevel;
+    const widthY = Viewport.BASE_SIZE * this.zoomLevel * this.ratio;
+
+    return new Rectangle(
+      this.center.x - widthX / 2,
+      this.center.y - widthY / 2,
+      widthX,
+      widthY
+    )
+  }
+
   private computeViewBox() {
     const unit = this.config.gridUnit * this.zoomLevel
     const widthX = Viewport.BASE_SIZE * unit

@@ -256,7 +256,7 @@ export class GraphLayout {
       .every(v => selectedVertices.includes(v));
   }
 
-  isGroupingMemberSelected(grouping: Grouping) {
+  isGroupingMemberSelected = (grouping: Grouping) => {
     const selectedVertices = this.selection
       .filter((vertexId) => this.vertices.has(vertexId))
 
@@ -264,7 +264,7 @@ export class GraphLayout {
       .some(v => selectedVertices.includes(v));
   }
 
-  isEdgeHighlighted(edge: Edge): boolean {
+  isEdgeHighlighted = (edge: Edge):boolean => {
     return this.isElementSelected(edge) || this.isEdgeAdjacent(edge, this.selection)
   }
 
