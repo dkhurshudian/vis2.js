@@ -90,15 +90,22 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
     })
   }
 
-  renderEdges() {
+  renderEdges(viewBoxRect:Rectangle) {
     const { layout, viewport } = this.context;
     const { svgRef } = this.props;
 
 
     const isVisualLabelRedundant = viewport.zoomLevel > VISUAL_LABEL_THRESHOLD;
+    const isWorthWindowing = viewport.zoomLevel < WINDOWING_THRESHOLD;
 
 
-    return layout.getEdges().filter((edge: Edge) => !edge.isHidden()).map((edge: Edge) => {
+    const edges = isWorthWindowing ? layout.getEdges().filter((edge: Edge) => {
+      return !edge.isHidden() && !viewBoxRect.overlaps(edge.getRect())
+    }): layout.getEdges().filter((edge: Edge) => {
+      return !edge.isHidden()
+    })
+
+    return edges.map((edge: Edge) => {
       const vertex1 = layout.vertices.get(edge.sourceId);
       const vertex2 = layout.vertices.get(edge.targetId);
       return <EdgeRenderer
@@ -181,7 +188,7 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
             sourcePoint={this.getEdgeCreateSourcePoint()}/>
         }
         {this.renderGroupings()}
-        {this.renderEdges()}
+        {this.renderEdges(viewBoxRect)}
         {this.renderVertices(viewBoxRect)}
       </Canvas>
     );

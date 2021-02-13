@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import { Entity } from '@alephdata/followthemoney';
+import { Entity, Schema as FtMSchema } from '@alephdata/followthemoney';
 import { Menu, Icon } from '@blueprintjs/core'
 import { Schema } from 'types';
 import groupBy from 'lodash/groupBy'
@@ -12,7 +12,21 @@ interface IEntityListProps {
   onEntityRemoved?: (selection: Entity) => void
 }
 
-export class EntityList extends React.PureComponent<IEntityListProps>{
+interface IEntityListState{
+  entityGroups: Array<[FtMSchema['plural'], Array<Entity>]>
+}
+export class EntityList extends React.PureComponent<IEntityListProps, IEntityListState>{
+  static getDerivedStateFromProps(props:IEntityListProps){
+    const {entities} = props;
+    const entityGroups = Object.entries(groupBy(entities, (e:Entity) => e.schema.plural)).map(([groupName, group]) => {
+      return [
+        groupName,
+        group.sort((a, b) => a.getCaption().toLowerCase() > b.getCaption().toLowerCase() ? 1 : -1)
+      ]
+    })
+
+    return {entityGroups};
+  }
   constructor(props: IEntityListProps) {
     super(props)
 
@@ -46,13 +60,10 @@ export class EntityList extends React.PureComponent<IEntityListProps>{
   }
 
   render() {
-    const { entities } = this.props;
-    entities
-      .sort((a, b) => a.getCaption().toLowerCase() > b.getCaption().toLowerCase() ? 1 : -1);
-    const entityGroups = groupBy(entities, (e:Entity) => e.schema.plural)
+    const { entityGroups } = this.state;
 
     return <Menu className="EntityList">
-      {Object.entries(entityGroups).map(([key, values]:any) => {
+      {entityGroups.map(([key, values]) => {
         return (
           <div className="EntityList__category" key={key}>
             <h5 className="EntityList__category__title">{key}</h5>

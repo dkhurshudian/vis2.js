@@ -30,6 +30,11 @@ export class Rectangle {
     )
   }
 
+  overlaps(to:Rectangle){
+    return this.x < (to.x + to.width) && (this.x + this.width) > to.x &&
+      this.y > (to.y+to.height) && (this.y+this.height) < to.y
+  }
+
   pad(padding: number): Rectangle {
     const center = this.getCenter()
     const width = this.width + (padding * 2)
