@@ -16,17 +16,20 @@ interface IEntityListState{
   entityGroups: Array<[FtMSchema['plural'], Array<Entity>]>
 }
 export class EntityList extends React.PureComponent<IEntityListProps, IEntityListState>{
-  static getDerivedStateFromProps(props:IEntityListProps){
-    const {entities} = props;
-    const entityGroups = Object.entries(groupBy(entities, (e:Entity) => e.schema.plural)).map(([groupName, group]) => {
-      return [
-        groupName,
-        group.sort((a, b) => a.getCaption().toLowerCase() > b.getCaption().toLowerCase() ? 1 : -1)
-      ]
-    })
+  // NOTE: This piece will be executed every time a tick happens, 99% of time unnecessary taking
+  //       more than 60% of computation time for every frame
 
-    return {entityGroups};
-  }
+  // static getDerivedStateFromProps(props:IEntityListProps){
+  //   const {entities} = props;
+  //   const entityGroups = Object.entries(groupBy(entities, (e:Entity) => e.schema.plural)).map(([groupName, group]) => {
+  //     return [
+  //       groupName,
+  //       group.sort((a, b) => a.getCaption().toLowerCase() > b.getCaption().toLowerCase() ? 1 : -1)
+  //     ]
+  //   })
+  //
+  //   return {entityGroups};
+  // }
   constructor(props: IEntityListProps) {
     super(props)
 
@@ -60,19 +63,8 @@ export class EntityList extends React.PureComponent<IEntityListProps, IEntityLis
   }
 
   render() {
-    const { entityGroups } = this.state;
+    // const { entityGroups } = this.state;
 
-    return <Menu className="EntityList">
-      {entityGroups.map(([key, values]) => {
-        return (
-          <div className="EntityList__category" key={key}>
-            <h5 className="EntityList__category__title">{key}</h5>
-            <div className="EntityList__category__values">
-              {values.map(this.renderItem)}
-            </div>
-          </div>
-        )
-      })}
-    </Menu>
+    return <i><br/> <b>Total entities - </b>{this.props.entities.length}</i>
   }
 }

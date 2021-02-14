@@ -44,11 +44,15 @@ export default class NetworkDiagramWrapper extends React.Component <IWrappedElem
   }
 
   propagateUpdate({ layout, viewport }: { layout?: GraphLayout, viewport?: Viewport }) {
-    const graphData = {
-      layout: layout ? layout.toJSON() : this.state.layout.toJSON(),
-      viewport: viewport ? viewport.toJSON() : this.state.viewport.toJSON()
-    };
-    this.props.onUpdate(graphData);
+    // NOTE: This is executed on for every canvas interaction. Sure necessary but shouldn't block rendering.
+    //       consider using requestIdleCallback, some workers or what have you.
+
+
+    // const graphData = {
+    //   layout: layout ? layout.toJSON() : this.state.layout.toJSON(),
+    //   viewport: viewport ? viewport.toJSON() : this.state.viewport.toJSON()
+    // };
+    // this.props.onUpdate(graphData);
   }
 
   render() {

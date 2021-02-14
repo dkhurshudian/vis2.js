@@ -362,14 +362,16 @@ export class Toolbar extends React.Component<IToolbarProps> {
         </div>
       )}
       <div className="Toolbar__main">
-        <OverflowList
-          items={buttons}
-          collapseFrom={Boundary.END}
-          visibleItemRenderer={(buttonGroup: IToolbarButtonGroup) => this.itemRenderer(buttonGroup, true)}
-          overflowRenderer={this.overflowListRenderer}
-          className="Toolbar__button-group-container"
-          observeParents
-        />
+        {/* Note: this piece will take 20ms every time a svg is re-rendered by requesting force-reflow */}
+
+        {/*<OverflowList*/}
+        {/*  items={buttons}*/}
+        {/*  collapseFrom={Boundary.END}*/}
+        {/*  visibleItemRenderer={(buttonGroup: IToolbarButtonGroup) => this.itemRenderer(buttonGroup, true)}*/}
+        {/*  overflowRenderer={this.overflowListRenderer}*/}
+        {/*  className="Toolbar__button-group-container"*/}
+        {/*  observeParents*/}
+        {/*/>*/}
       </div>
       {showSearch &&
         <div className="Toolbar__search-container">

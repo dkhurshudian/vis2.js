@@ -200,7 +200,11 @@ class NetworkDiagramBase extends React.Component<INetworkDiagramProps, INetworkD
   updateViewport(viewport: Viewport, { animate = false } = {}) {
     const { updateViewport } = this.props;
 
-    this.setState({animateTransition: animate});
+    // You wont believe but this saves 40ms, which is half of time the tree required for rendering after optimization
+    if(this.state.animateTransition !== animate){
+      this.setState({animateTransition: animate});
+    }
+
 
     updateViewport(viewport);
   }
