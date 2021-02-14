@@ -133,11 +133,7 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
     const isVisualLabelRedundant = viewport.zoomLevel > VISUAL_LABEL_THRESHOLD;
     const isWorthWindowing = viewport.zoomLevel < WINDOWING_THRESHOLD;
 
-    const vertices = isWorthWindowing
-      ? layout.getVertices().filter((vertex: Vertex) => {
-        return !vertex.isHidden() && viewBoxRect.contains(vertex.position)
-      })
-      : layout.getVertices().filter(function vertexFilter(vertex: Vertex) {return  !vertex.isHidden()})
+    const vertices = layout.getVertices().filter(function vertexFilter(vertex: Vertex) {return  !vertex.isHidden()})
 
 
 
@@ -153,9 +149,10 @@ export class GraphRenderer extends React.Component<IGraphRendererProps> {
         layoutConfig={this.context.layout.config}
         isElementSelected={this.context.layout.isElementSelected}
         entityManager={this.context.entityManager}
-        interactionMode={this.context.interactionMode}
+        interactionMode={this.context.interactionMode} // pass down only necessary flags.
         noneSelected={layout.selection.length===0}
         isVisualLabelRedundant={isVisualLabelRedundant}
+        shouldHide={isWorthWindowing && !viewBoxRect.contains(vertex.position)}
       />
     )
   }

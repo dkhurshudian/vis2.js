@@ -23,6 +23,7 @@ interface IVertexRendererProps {
   interactionMode:string;
   noneSelected:boolean;
   isVisualLabelRedundant?:boolean;
+  shouldHide:boolean;
 }
 
 interface IVertexRendererState {
@@ -173,7 +174,9 @@ export class VertexRenderer extends React.PureComponent<IVertexRendererProps, IV
     const groupStyles: React.CSSProperties = {
       cursor: selected && writeable ? 'grab' : 'pointer',
       pointerEvents: this.allowPointerEvents() ? 'auto' : 'none',
-    }
+      display:this.props.shouldHide?'none':'initial'
+
+  }
 
     return (
       <DraggableCore
